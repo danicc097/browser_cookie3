@@ -251,6 +251,8 @@ class ChromiumBased:
 
     def __del__(self):
         # remove temporary backup of sqlite cookie database
+        # ! FIX gives permission error. Opened file
+        return
         if hasattr(self, 'tmp_cookie_file'):  # if there was an error till here
             os.remove(self.tmp_cookie_file)
     
