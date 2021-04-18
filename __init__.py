@@ -13,7 +13,7 @@ import configparser
 import base64
 from Crypto.Cipher import AES
 from typing import Union
-
+import shutil
 try:
     import json
 except ImportError:
@@ -175,6 +175,11 @@ def expand_paths(paths:list, os_name:str):
     paths = next(filter(os.path.exists, paths), None)
     return paths
 
+def text_factory(data):
+    try:
+        return data.decode('utf-8')
+    except UnicodeDecodeError:
+        return data
 
 class ChromiumBased:
     '''Super class for all Chromium based browser.
@@ -251,10 +256,8 @@ class ChromiumBased:
 
     def __del__(self):
         # remove temporary backup of sqlite cookie database
-        # ! FIX gives permission error. Opened file
-        return
         if hasattr(self, 'tmp_cookie_file'):  # if there was an error till here
-            os.remove(self.tmp_cookie_file)
+            shutil.rmtree(self.tmp_cookie_file,ignore_errors=True)
     
     def __str__(self):
         return self.browser
@@ -263,6 +266,7 @@ class ChromiumBased:
         """Load sqlite cookies into a cookiejar
         """
         con = sqlite3.connect(self.tmp_cookie_file)
+        con.text_factory = text_factory
         cur = con.cursor()
         try:
             # chrome <=55
@@ -467,7 +471,8 @@ class Firefox:
     def __del__(self):
         # remove temporary backup of sqlite cookie database
         if self.tmp_cookie_file:
-            os.remove(self.tmp_cookie_file)
+            shutil.rmtree(self.tmp_cookie_file,ignore_errors=True)
+
 
     def __str__(self):
         return 'firefox'
@@ -634,4 +639,3 @@ def load(domain_name=""):
 
 if __name__ == '__main__':
     print(load())
-
